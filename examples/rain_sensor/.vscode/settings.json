@@ -1,0 +1,8 @@
+{
+    "idf.portWin": "COM11",
+    "idf.adapterTargetName": "esp32c6",
+    "idf.openOcdConfigs": [
+        "board/esp32c6-builtin.cfg"
+    ],
+    "idf.flashType": "UART"
+}

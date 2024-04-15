@@ -20,6 +20,11 @@
 #include <app_wifi.h>
 #include <app_insights.h>
 
+#include <driver/gpio.h>
+#include "esp_adc/adc_oneshot.h"
+#include "esp_adc/adc_cali.h"
+#include "esp_adc/adc_cali_scheme.h"
+
 #include "app_priv.h"
 
 static const char *TAG = "app_main";
@@ -51,7 +56,7 @@ void app_main()
     esp_rmaker_config_t rainmaker_cfg = {
         .enable_time_sync = false,
     };
-    esp_rmaker_node_t *node = esp_rmaker_node_init(&rainmaker_cfg, "ESP RainMaker Device", "Temperature Sensor");
+    esp_rmaker_node_t *node = esp_rmaker_node_init(&rainmaker_cfg, "1ESP RainMaker Device1", "2Rain Sensor2");
     if (!node) {
         ESP_LOGE(TAG, "Could not initialise node. Aborting!!!");
         vTaskDelay(5000/portTICK_PERIOD_MS);
@@ -59,7 +64,7 @@ void app_main()
     }
 
     /* Create a device and add the relevant parameters to it */
-    temp_sensor_device = esp_rmaker_temp_sensor_device_create("Temperature Sensor", NULL, app_get_current_temperature());
+    temp_sensor_device = esp_rmaker_temp_sensor_device_create("Rain Sensor", NULL, app_get_current_temperature()); // TODO=: Change UI and name of parameter
     esp_rmaker_node_add_device(node, temp_sensor_device);
 
     /* Enable OTA */
