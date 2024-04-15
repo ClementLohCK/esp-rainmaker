@@ -78,7 +78,7 @@ void app_main()
     esp_rmaker_config_t rainmaker_cfg = {
         .enable_time_sync = false,
     };
-    esp_rmaker_node_t *node = esp_rmaker_node_init(&rainmaker_cfg, "ESP RainMaker Device", "Fan");
+    esp_rmaker_node_t *node = esp_rmaker_node_init(&rainmaker_cfg, "ESP RainMaker Device", "Alarm");
     if (!node) {
         ESP_LOGE(TAG, "Could not initialise node. Aborting!!!");
         vTaskDelay(5000/portTICK_PERIOD_MS);
@@ -86,7 +86,7 @@ void app_main()
     }
 
     /* Create a device and add the relevant parameters to it */
-    fan_device = esp_rmaker_fan_device_create("Fan", NULL, DEFAULT_POWER);
+    fan_device = esp_rmaker_fan_device_create("Alarm", NULL, DEFAULT_POWER);
     esp_rmaker_device_add_cb(fan_device, write_cb, NULL);
     esp_rmaker_device_add_param(fan_device, esp_rmaker_speed_param_create(ESP_RMAKER_DEF_SPEED_NAME, DEFAULT_SPEED));
     esp_rmaker_node_add_device(node, fan_device);

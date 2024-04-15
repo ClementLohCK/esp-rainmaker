@@ -13,6 +13,7 @@
 #include <esp_rmaker_core.h>
 #include <esp_rmaker_standard_types.h> 
 #include <esp_rmaker_standard_params.h> 
+#include <esp_log.h>
 
 #include <app_reset.h>
 #include <ws2812_led.h>
@@ -21,6 +22,8 @@
 /* This is the button that is used for toggling the power */
 #define BUTTON_GPIO          CONFIG_EXAMPLE_BOARD_BUTTON_GPIO
 #define BUTTON_ACTIVE_LEVEL  0
+
+#define OUTPUT_GPIO_BUZZER   3
 
 #define DEFAULT_HUE         180
 #define DEFAULT_SATURATION  100
@@ -35,6 +38,8 @@ static uint16_t g_saturation = DEFAULT_SATURATION;
 static uint16_t g_value = DEFAULT_BRIGHTNESS;
 static bool g_power = DEFAULT_POWER;
 
+static const char *TAG = "app_driver";
+
 esp_err_t app_fan_set_power(bool power)
 {
     g_power = power;
@@ -48,9 +53,19 @@ esp_err_t app_fan_set_power(bool power)
 
 esp_err_t app_fan_set_speed(uint8_t speed)
 {
-    g_speed = speed;
-    g_value = 20 * g_speed;
-    return ws2812_led_set_hsv(g_hue, g_saturation, g_value);
+    // g_speed = speed;
+    // g_value = 20 * g_speed;
+    // return ws2812_led_set_hsv(g_hue, g_saturation, g_value);
+
+    for (int i = 0; i < speed; i++)
+    {
+        gpio_set_level(OUTPUT_GPIO_BUZZER, true);
+        vTaskDelay(500/portTICK_PERIOD_MS);
+        gpio_set_level(OUTPUT_GPIO_BUZZER, false);
+        vTaskDelay(500/portTICK_PERIOD_MS);
+    }
+
+    return ESP_OK;
 }
 
 esp_err_t app_fan_init(void)
@@ -97,4 +112,7 @@ void app_driver_init()
         /* Register Wi-Fi reset and factory reset functionality on same button */
         app_reset_button_register(btn_handle, WIFI_RESET_BUTTON_TIMEOUT, FACTORY_RESET_BUTTON_TIMEOUT);
     }
+
+    gpio_set_direction(OUTPUT_GPIO_BUZZER, GPIO_MODE_OUTPUT);
+    gpio_set_level(OUTPUT_GPIO_BUZZER, false);
 }
