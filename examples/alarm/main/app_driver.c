@@ -128,7 +128,7 @@ void app_driver_init()
 int IRAM_ATTR app_driver_set_state(bool state) // Error: conflicting types for 'app_driver_set_state'; have 'int(int)
 {
     g_power_state = state;
-    if(g_power_state == true)
+    if(g_power_state == true && flag_alarm_timer_created == false)
     {
         alarm_timer = xTimerCreate("app_alarm_update_tm", (REPORTING_PERIOD * 1000) / portTICK_PERIOD_MS,
                                 pdTRUE, NULL, app_alarm_update);
@@ -144,6 +144,7 @@ int IRAM_ATTR app_driver_set_state(bool state) // Error: conflicting types for '
             ESP_LOGE(TAG, "Could not xTimerDelete, err: %i", err2);
             vTaskDelay(5000/portTICK_PERIOD_MS);
         }
+        flag_alarm_timer_created = false;
     } else
     {
         set_power_state(false);
