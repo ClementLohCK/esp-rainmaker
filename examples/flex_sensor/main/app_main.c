@@ -14,6 +14,7 @@
 #include <nvs_flash.h>
 
 #include <esp_rmaker_core.h>
+#include <esp_rmaker_standard_types.h>
 #include <esp_rmaker_standard_params.h>
 #include <esp_rmaker_standard_devices.h>
 
@@ -29,7 +30,27 @@
 
 static const char *TAG = "app_main";
 
-esp_rmaker_device_t *temp_sensor_device;
+esp_rmaker_device_t *temp_sensor_device; // TODO=: Rename into flex_sensor_device, check app_priv.h too
+
+/* Callback to handle commands received from the RainMaker cloud */
+static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_param_t *param,
+            const esp_rmaker_param_val_t val, void *priv_data, esp_rmaker_write_ctx_t *ctx)
+{
+    if (ctx) {
+        ESP_LOGI(TAG, "Parameter %s kena called back cause received write request via : %s", esp_rmaker_param_get_name(param), esp_rmaker_device_cb_src_to_str(ctx->src));
+    }
+    char *device_name = esp_rmaker_device_get_name(device);
+    char *param_name = esp_rmaker_param_get_name(param);
+    if (strcmp(param_name, "Frequency") == 0) {
+        ESP_LOGI(TAG, "Received value = %d for %s - %s",
+                val.val.i, device_name, param_name);
+        app_driver_set_level(val.val.i);
+    } else {
+        ESP_LOGI(TAG, "Nothing changed");
+    }
+    esp_rmaker_param_update_and_report(param, val);
+    return ESP_OK;
+}
 
 void app_main()
 {
@@ -56,7 +77,7 @@ void app_main()
     esp_rmaker_config_t rainmaker_cfg = {
         .enable_time_sync = false,
     };
-    esp_rmaker_node_t *node = esp_rmaker_node_init(&rainmaker_cfg, "1ESP RainMaker Device1", "2Rain Sensor2");
+    esp_rmaker_node_t *node = esp_rmaker_node_init(&rainmaker_cfg, "ESP RainMaker Device", "Type-Flex_Sensor"); // 2nd arg only appears if got multiple devices within 1 node
     if (!node) {
         ESP_LOGE(TAG, "Could not initialise node. Aborting!!!");
         vTaskDelay(5000/portTICK_PERIOD_MS);
@@ -64,7 +85,17 @@ void app_main()
     }
 
     /* Create a device and add the relevant parameters to it */
-    temp_sensor_device = esp_rmaker_temp_sensor_device_create("Rain Sensor", NULL, app_get_current_temperature()); // TODO=: Change UI and name of parameter
+    temp_sensor_device = esp_rmaker_temp_sensor_device_create("Flex Sensor", NULL, app_get_current_temperature());
+    esp_rmaker_device_add_cb(temp_sensor_device, write_cb, NULL);
+
+    /* Create own parameter */
+    esp_rmaker_param_t *frequency_param = esp_rmaker_speed_param_create("Frequency", DEFAULT_SPEED);
+    esp_rmaker_param_add_ui_type(frequency_param, ESP_RMAKER_UI_SLIDER);
+    esp_rmaker_device_add_param(temp_sensor_device, frequency_param);
+    // esp_rmaker_param_t *switch_param = esp_rmaker_param_create("Alert", NULL, esp_rmaker_bool(false), PROP_FLAG_READ | PROP_FLAG_WRITE);
+    // esp_rmaker_param_add_ui_type(switch_param, ESP_RMAKER_UI_TRIGGER); // Trigger needs to be able to turn false cause when stop raining, Rain_Sensor also need to deactivate Alert; Can try look into Slider for different levels of sampling rate
+    // esp_rmaker_device_add_param(temp_sensor_device, switch_param);
+
     esp_rmaker_node_add_device(node, temp_sensor_device);
 
     /* Enable OTA */
@@ -86,5 +117,5 @@ void app_main()
         ESP_LOGE(TAG, "Could not start Wifi. Aborting!!!");
         vTaskDelay(5000/portTICK_PERIOD_MS);
         abort();
-    }
+    };
 }

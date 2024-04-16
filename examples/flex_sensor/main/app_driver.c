@@ -48,6 +48,65 @@ static adc_cali_handle_t adc_cali_handle;
 
 static const char *TAG = "app_driver";
 
+int err_timer;
+
+int IRAM_ATTR app_driver_set_level(int level)
+{
+    switch (level) {
+        case 0:
+            ESP_LOGI(TAG, "level 0, break");
+            err_timer = xTimerDelete(sensor_timer, 1); // xBlockTime set to 1 tick to prevent alarm_timer not deleted before next line, NULL only throws warning for casting type
+            if (err_timer != 1) {
+                ESP_LOGE(TAG, "Could not xTimerDelete, err: %i", err_timer);
+                vTaskDelay(5000/portTICK_PERIOD_MS);
+            }
+            g_temperature = DEFAULT_TEMPERATURE;
+            sensor_timer = xTimerCreate("app_sensor_update_tm", (REPORTING_PERIOD * 1000) / portTICK_PERIOD_MS,
+                                    pdTRUE, NULL, app_sensor_update);
+            if (sensor_timer) {
+                xTimerStart(sensor_timer, 0);
+                g_hue = (100 - g_temperature) * 2;
+                ws2812_led_set_hsv(g_hue, g_saturation, g_value);
+            }
+            break;
+        case 1:
+            ESP_LOGI(TAG, "level 1");
+            err_timer = xTimerDelete(sensor_timer, 1); // xBlockTime set to 1 tick to prevent alarm_timer not deleted before next line, NULL only throws warning for casting type
+            if (err_timer != 1) {
+                ESP_LOGE(TAG, "Could not xTimerDelete, err: %i", err_timer);
+                vTaskDelay(5000/portTICK_PERIOD_MS);
+            }
+            g_temperature = DEFAULT_TEMPERATURE;
+            sensor_timer = xTimerCreate("app_sensor_update_tm", (4 * 1000) / portTICK_PERIOD_MS,
+                                    pdTRUE, NULL, app_sensor_update);
+            if (sensor_timer) {
+                xTimerStart(sensor_timer, 0);
+                g_hue = (100 - g_temperature) * 2;
+                ws2812_led_set_hsv(g_hue, g_saturation, g_value);
+            }
+            break;
+        case 2:
+            ESP_LOGI(TAG, "level 2");
+            err_timer = xTimerDelete(sensor_timer, 1); // xBlockTime set to 1 tick to prevent alarm_timer not deleted before next line, NULL only throws warning for casting type
+            if (err_timer != 1) {
+                ESP_LOGE(TAG, "Could not xTimerDelete, err: %i", err_timer);
+                vTaskDelay(5000/portTICK_PERIOD_MS);
+            }
+            g_temperature = DEFAULT_TEMPERATURE;
+            sensor_timer = xTimerCreate("app_sensor_update_tm", (1 * 1000) / portTICK_PERIOD_MS,
+                                    pdTRUE, NULL, app_sensor_update);
+            if (sensor_timer) {
+                xTimerStart(sensor_timer, 0);
+                g_hue = (100 - g_temperature) * 2;
+                ws2812_led_set_hsv(g_hue, g_saturation, g_value);
+            }
+            break;
+        default:
+            ESP_LOGI(TAG, "level default, no break");
+    }
+    return ESP_OK;
+}
+
 int map_range(int x, int in_min, int in_max, int out_min, int out_max)
 {
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -138,9 +197,26 @@ esp_err_t app_sensor_init(void)
     return ESP_FAIL;
 }
 
+esp_err_t app_gpio_init(void)
+{
+    /* Configure power */
+    gpio_config_t io_conf = {
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = 1,
+    };
+
+    uint64_t pin_mask = (((uint64_t)1 << OUTPUT_GPIO ));
+    io_conf.pin_bit_mask = pin_mask;
+    /* Configure the GPIO */
+    gpio_config(&io_conf);
+    gpio_set_level(OUTPUT_GPIO, false);
+    return ESP_OK;
+}
+
 void app_driver_init()
 {
     app_sensor_init();
+    app_gpio_init();
     app_reset_button_register(app_reset_button_create(BUTTON_GPIO, BUTTON_ACTIVE_LEVEL),
                 WIFI_RESET_BUTTON_TIMEOUT, FACTORY_RESET_BUTTON_TIMEOUT);
 }
