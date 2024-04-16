@@ -10,7 +10,7 @@
 #include <stdbool.h>
 
 #define DEFAULT_TEMPERATURE 25.0
-#define REPORTING_PERIOD    5 /* Seconds */
+#define REPORTING_PERIOD    32 /* Seconds */
 
 // Look up the ESP programming guide to see which pin is ADC1_CH0
 #define ADC_UNIT ADC_UNIT_1

@@ -54,7 +54,7 @@ int IRAM_ATTR app_driver_set_level(int level)
 {
     switch (level) {
         case 0:
-            ESP_LOGI(TAG, "level 0, break");
+            ESP_LOGI(TAG, "level 0");
             err_timer = xTimerDelete(sensor_timer, 1); // xBlockTime set to 1 tick to prevent alarm_timer not deleted before next line, NULL only throws warning for casting type
             if (err_timer != 1) {
                 ESP_LOGE(TAG, "Could not xTimerDelete, err: %i", err_timer);
@@ -77,7 +77,7 @@ int IRAM_ATTR app_driver_set_level(int level)
                 vTaskDelay(5000/portTICK_PERIOD_MS);
             }
             g_temperature = DEFAULT_TEMPERATURE;
-            sensor_timer = xTimerCreate("app_sensor_update_tm", (4 * 1000) / portTICK_PERIOD_MS,
+            sensor_timer = xTimerCreate("app_sensor_update_tm", (16 * 1000) / portTICK_PERIOD_MS,
                                     pdTRUE, NULL, app_sensor_update);
             if (sensor_timer) {
                 xTimerStart(sensor_timer, 0);
@@ -93,6 +93,54 @@ int IRAM_ATTR app_driver_set_level(int level)
                 vTaskDelay(5000/portTICK_PERIOD_MS);
             }
             g_temperature = DEFAULT_TEMPERATURE;
+            sensor_timer = xTimerCreate("app_sensor_update_tm", (8 * 1000) / portTICK_PERIOD_MS,
+                                    pdTRUE, NULL, app_sensor_update);
+            if (sensor_timer) {
+                xTimerStart(sensor_timer, 0);
+                g_hue = (100 - g_temperature) * 2;
+                ws2812_led_set_hsv(g_hue, g_saturation, g_value);
+            }
+            break;
+        case 3:
+            ESP_LOGI(TAG, "level 3");
+            err_timer = xTimerDelete(sensor_timer, 1); // xBlockTime set to 1 tick to prevent alarm_timer not deleted before next line, NULL only throws warning for casting type
+            if (err_timer != 1) {
+                ESP_LOGE(TAG, "Could not xTimerDelete, err: %i", err_timer);
+                vTaskDelay(5000/portTICK_PERIOD_MS);
+            }
+            g_temperature = DEFAULT_TEMPERATURE;
+            sensor_timer = xTimerCreate("app_sensor_update_tm", (4 * 1000) / portTICK_PERIOD_MS,
+                                    pdTRUE, NULL, app_sensor_update);
+            if (sensor_timer) {
+                xTimerStart(sensor_timer, 0);
+                g_hue = (100 - g_temperature) * 2;
+                ws2812_led_set_hsv(g_hue, g_saturation, g_value);
+            }
+            break;
+        case 4:
+            ESP_LOGI(TAG, "level 4");
+            err_timer = xTimerDelete(sensor_timer, 1); // xBlockTime set to 1 tick to prevent alarm_timer not deleted before next line, NULL only throws warning for casting type
+            if (err_timer != 1) {
+                ESP_LOGE(TAG, "Could not xTimerDelete, err: %i", err_timer);
+                vTaskDelay(5000/portTICK_PERIOD_MS);
+            }
+            g_temperature = DEFAULT_TEMPERATURE;
+            sensor_timer = xTimerCreate("app_sensor_update_tm", (2 * 1000) / portTICK_PERIOD_MS,
+                                    pdTRUE, NULL, app_sensor_update);
+            if (sensor_timer) {
+                xTimerStart(sensor_timer, 0);
+                g_hue = (100 - g_temperature) * 2;
+                ws2812_led_set_hsv(g_hue, g_saturation, g_value);
+            }
+            break;
+        case 5:
+            ESP_LOGI(TAG, "level 5");
+            err_timer = xTimerDelete(sensor_timer, 1); // xBlockTime set to 1 tick to prevent alarm_timer not deleted before next line, NULL only throws warning for casting type
+            if (err_timer != 1) {
+                ESP_LOGE(TAG, "Could not xTimerDelete, err: %i", err_timer);
+                vTaskDelay(5000/portTICK_PERIOD_MS);
+            }
+            g_temperature = DEFAULT_TEMPERATURE;
             sensor_timer = xTimerCreate("app_sensor_update_tm", (1 * 1000) / portTICK_PERIOD_MS,
                                     pdTRUE, NULL, app_sensor_update);
             if (sensor_timer) {
@@ -102,7 +150,8 @@ int IRAM_ATTR app_driver_set_level(int level)
             }
             break;
         default:
-            ESP_LOGI(TAG, "level default, no break");
+            ESP_LOGI(TAG, "level default");
+            break;
     }
     return ESP_OK;
 }
