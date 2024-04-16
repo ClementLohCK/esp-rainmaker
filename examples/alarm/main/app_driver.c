@@ -28,8 +28,8 @@ static bool g_power_state = DEFAULT_POWER;
 static bool flag_alarm_timer_created = false;
 
 /* These values correspoind to H,S,V = 120,100,10 */
-#define DEFAULT_RED     0
-#define DEFAULT_GREEN   25
+#define DEFAULT_RED     255
+#define DEFAULT_GREEN   0
 #define DEFAULT_BLUE    0
 
 static TimerHandle_t alarm_timer;
