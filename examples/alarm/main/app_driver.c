@@ -25,6 +25,7 @@
 /* This is the GPIO on which the power will be set */
 #define OUTPUT_GPIO    3
 static bool g_power_state = DEFAULT_POWER;
+static bool flag_alarm_timer_created = false;
 
 /* These values correspoind to H,S,V = 120,100,10 */
 #define DEFAULT_RED     0
@@ -124,24 +125,28 @@ void app_driver_init()
     app_indicator_init();
 }
 
-int IRAM_ATTR app_driver_set_state(bool state)
+int IRAM_ATTR app_driver_set_state(bool state) // Error: conflicting types for 'app_driver_set_state'; have 'int(int)
 {
     g_power_state = state;
-    if(g_power_state == true) {        
+    if(g_power_state == true)
+    {
         alarm_timer = xTimerCreate("app_alarm_update_tm", (REPORTING_PERIOD * 1000) / portTICK_PERIOD_MS,
                                 pdTRUE, NULL, app_alarm_update);
+        flag_alarm_timer_created = true;
         if (alarm_timer) {
             xTimerStart(alarm_timer, 0);
-            return ESP_OK;
         }
-    } else if (g_power_state == false)
+    } else if (g_power_state == false && flag_alarm_timer_created == true)
     {
         int err2 = xTimerDelete(alarm_timer, 1000); // POLISH=: What's the proper xBlockTime supposed to be?
         set_power_state(false);
         if (err2 != 1) {
-            ESP_LOGI(TAG, "Could not xTimerDelete, err: %i", err2);
+            ESP_LOGE(TAG, "Could not xTimerDelete, err: %i", err2);
             vTaskDelay(5000/portTICK_PERIOD_MS);
         }
+    } else
+    {
+        set_power_state(false);
     }
     return ESP_OK;
 }
