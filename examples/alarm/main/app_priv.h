@@ -9,7 +9,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define DEFAULT_POWER  true
+#define DEFAULT_POWER       false
+#define REPORTING_PERIOD    0.1 /* Seconds */
+
 extern esp_rmaker_device_t *switch_device;
 void app_driver_init(void);
 int app_driver_set_state(bool state);

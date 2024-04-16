@@ -7,6 +7,7 @@
    CONDITIONS OF ANY KIND, either express or implied.
 */
 
+#include <esp_log.h>
 #include <sdkconfig.h>
 
 #include <iot_button.h>
@@ -30,8 +31,13 @@ static bool g_power_state = DEFAULT_POWER;
 #define DEFAULT_GREEN   25
 #define DEFAULT_BLUE    0
 
+static TimerHandle_t alarm_timer;
+static bool alarm_state = false;
+
 #define WIFI_RESET_BUTTON_TIMEOUT       3
 #define FACTORY_RESET_BUTTON_TIMEOUT    10
+
+static const char *TAG = "app_driver";
 
 static void app_indicator_set(bool state)
 {
@@ -80,6 +86,23 @@ static void set_power_state(bool target)
     app_indicator_set(target);
 }
 
+static void app_alarm_update(TimerHandle_t handle)
+{
+    if (alarm_state == true)
+    {
+        set_power_state(false);
+        alarm_state = false;
+    } else if (alarm_state == false)
+    {
+        set_power_state(true);
+        alarm_state = true;
+    } else {
+        ESP_LOGI(TAG, "Weird alarm_state: %i, setting to false", alarm_state);
+        set_power_state(false);
+    }
+    
+}
+
 void app_driver_init()
 {
     button_handle_t btn_handle = iot_button_create(BUTTON_GPIO, BUTTON_ACTIVE_LEVEL);
@@ -103,9 +126,22 @@ void app_driver_init()
 
 int IRAM_ATTR app_driver_set_state(bool state)
 {
-    if(g_power_state != state) {
-        g_power_state = state;
-        set_power_state(g_power_state);
+    g_power_state = state;
+    if(g_power_state == true) {        
+        alarm_timer = xTimerCreate("app_alarm_update_tm", (REPORTING_PERIOD * 1000) / portTICK_PERIOD_MS,
+                                pdTRUE, NULL, app_alarm_update);
+        if (alarm_timer) {
+            xTimerStart(alarm_timer, 0);
+            return ESP_OK;
+        }
+    } else if (g_power_state == false)
+    {
+        int err2 = xTimerDelete(alarm_timer, 1000); // POLISH=: What's the proper xBlockTime supposed to be?
+        set_power_state(false);
+        if (err2 != 1) {
+            ESP_LOGI(TAG, "Could not xTimerDelete, err: %i", err2);
+            vTaskDelay(5000/portTICK_PERIOD_MS);
+        }
     }
     return ESP_OK;
 }
