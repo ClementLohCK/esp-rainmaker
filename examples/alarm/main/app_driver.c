@@ -138,7 +138,7 @@ int IRAM_ATTR app_driver_set_state(bool state) // Error: conflicting types for '
         }
     } else if (g_power_state == false && flag_alarm_timer_created == true)
     {
-        int err2 = xTimerDelete(alarm_timer, 1000); // POLISH=: What's the proper xBlockTime supposed to be?
+        int err2 = xTimerDelete(alarm_timer, 1); // xBlockTime set to 1 tick to prevent alarm_timer not deleted before next line, NULL only throws warning for casting type
         set_power_state(false);
         if (err2 != 1) {
             ESP_LOGE(TAG, "Could not xTimerDelete, err: %i", err2);
