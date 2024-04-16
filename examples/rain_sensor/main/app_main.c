@@ -14,6 +14,7 @@
 #include <nvs_flash.h>
 
 #include <esp_rmaker_core.h>
+#include <esp_rmaker_standard_types.h>
 #include <esp_rmaker_standard_params.h>
 #include <esp_rmaker_standard_devices.h>
 
@@ -29,7 +30,7 @@
 
 static const char *TAG = "app_main";
 
-esp_rmaker_device_t *temp_sensor_device;
+esp_rmaker_device_t *rain_sensor_device;
 
 void app_main()
 {
@@ -56,7 +57,7 @@ void app_main()
     esp_rmaker_config_t rainmaker_cfg = {
         .enable_time_sync = false,
     };
-    esp_rmaker_node_t *node = esp_rmaker_node_init(&rainmaker_cfg, "1ESP RainMaker Device1", "2Rain Sensor2");
+    esp_rmaker_node_t *node = esp_rmaker_node_init(&rainmaker_cfg, "ESP RainMaker Device", "Unknown-Rain_Sensor");
     if (!node) {
         ESP_LOGE(TAG, "Could not initialise node. Aborting!!!");
         vTaskDelay(5000/portTICK_PERIOD_MS);
@@ -64,8 +65,16 @@ void app_main()
     }
 
     /* Create a device and add the relevant parameters to it */
-    temp_sensor_device = esp_rmaker_temp_sensor_device_create("Rain Sensor", NULL, app_get_current_temperature()); // TODO=: Change UI and name of parameter
-    esp_rmaker_node_add_device(node, temp_sensor_device);
+    // Error when trying to beautify UI: Guru Meditation Error: Core  0 panic'ed (Load access fault). Exception was unhandled.
+    // rain_sensor_device = esp_rmaker_device_create("Device-Rain_Sensor", ESP_RMAKER_DEVICE_LIGHTBULB, NULL);
+    // esp_rmaker_param_t *precipitation_param = esp_rmaker_param_create("Precipitation", NULL, esp_rmaker_bool(false), PROP_FLAG_READ);
+    // esp_rmaker_param_add_ui_type(precipitation_param, ESP_RMAKER_UI_TEXT);
+    // esp_rmaker_device_add_param(rain_sensor_device, precipitation_param);
+    rain_sensor_device = esp_rmaker_temp_sensor_device_create("Rain Sensor", ESP_RMAKER_DEVICE_LIGHTBULB, app_get_current_precipitation()); // Changing 2nd arg into ESP_RMAKER_DEVICE_LIGHTBULB doesn't work for temp_sensor_device_create;
+
+    // esp_rmaker_device_add_param(rain_sensor_device, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, "Rain Sensor")); // tried to add name of parameter but overwritten by temp_sensor_device_create
+
+    esp_rmaker_node_add_device(node, rain_sensor_device);
 
     /* Enable OTA */
     esp_rmaker_ota_enable_default();

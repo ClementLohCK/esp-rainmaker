@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define DEFAULT_TEMPERATURE 25.0
+#define DEFAULT_PRECIPITATION 25.0
 #define REPORTING_PERIOD    5 /* Seconds */
 
 // Look up the ESP programming guide to see which pin is ADC1_CH0
@@ -20,7 +20,7 @@
 #define ADC_ATTEN ADC_ATTEN_DB_11
 #define ADC_BITWIDTH ADC_BITWIDTH_DEFAULT
 #define ADC_RAW_MAX (4095)
-#define ADC_RAIN_RAW_MIN (1400) // recorded min = 1441
+#define ADC_RAIN_RAW_MIN (1400) // recorded min = 1200
 #define ADC_RAIN_RAW_MAX (3800) // recorded max = 3728
 #define SENSOR_RANGE (100)
 
@@ -29,7 +29,7 @@
 #define LDR_BRIGHT (80)
 #define LDR_DARK (20)
 
-extern esp_rmaker_device_t *temp_sensor_device;
+extern esp_rmaker_device_t *rain_sensor_device;
 
 void app_driver_init(void);
-float app_get_current_temperature();
+float app_get_current_precipitation();

@@ -1,4 +1,4 @@
-/*  Temperature Sensor demo implementation using RGB LED and timer
+/*  Rain Sensor demo implementation using RGB LED and timer, adapted from Temperature Sensor demo
 
    This example code is in the Public Domain (or CC0 licensed, at your option.)
 
@@ -25,15 +25,15 @@
 #include "esp_adc/adc_cali_scheme.h"
 
 /* This is the button that is used for toggling the power */
-#define BUTTON_GPIO          CONFIG_EXAMPLE_BOARD_BUTTON_GPIO
-#define BUTTON_ACTIVE_LEVEL  0
+#define BUTTON_GPIO                     CONFIG_EXAMPLE_BOARD_BUTTON_GPIO
+#define BUTTON_ACTIVE_LEVEL             0
 /* This is the GPIO on which the power will be set */
-#define OUTPUT_GPIO    19
+#define OUTPUT_GPIO                     19
 
 static TimerHandle_t sensor_timer;
 
-#define DEFAULT_SATURATION  100
-#define DEFAULT_BRIGHTNESS  50
+#define DEFAULT_SATURATION              100
+#define DEFAULT_BRIGHTNESS              50
 
 #define WIFI_RESET_BUTTON_TIMEOUT       3
 #define FACTORY_RESET_BUTTON_TIMEOUT    10
@@ -41,7 +41,7 @@ static TimerHandle_t sensor_timer;
 static uint16_t g_hue;
 static uint16_t g_saturation = DEFAULT_SATURATION;
 static uint16_t g_value = DEFAULT_BRIGHTNESS;
-static float g_temperature; // TODO=: Replace name
+static float g_precipitation;
 
 static adc_oneshot_unit_handle_t adc_handle;
 static adc_cali_handle_t adc_cali_handle;
@@ -70,30 +70,30 @@ int get_sensor_reading(void)
 
 static void app_sensor_update(TimerHandle_t handle)
 {
-    g_temperature = DEFAULT_TEMPERATURE;
-    g_temperature = get_sensor_reading();
-    ESP_LOGI(TAG, "Sensor reading: %f", g_temperature);
+    g_precipitation = DEFAULT_PRECIPITATION;
+    g_precipitation = get_sensor_reading();
+    ESP_LOGI(TAG, "Sensor reading: %f", g_precipitation);
     // for cycling at 0.5 intervals
     // static float delta = 0.5;
-    // g_temperature += delta;
-    // if (g_temperature > 99) {
+    // g_precipitation += delta;
+    // if (g_precipitation > 99) {
     //     delta = -0.5;
-    // } else if (g_temperature < 1) {
+    // } else if (g_precipitation < 1) {
     //     delta = 0.5;
     // }
 
-    // TODO=: Remove this section when not needed
-    g_hue = (100 - g_temperature) * 2;
+    // Leaving this section to easily find out current state of precipitation
+    g_hue = (100 - g_precipitation) * 2;
     ESP_LOGI(TAG, "g_hue: %d", g_hue);
     ws2812_led_set_hsv(g_hue, g_saturation, g_value);
     esp_rmaker_param_update_and_report(
-            esp_rmaker_device_get_param_by_type(temp_sensor_device, ESP_RMAKER_PARAM_TEMPERATURE),
-            esp_rmaker_float(g_temperature));
+            esp_rmaker_device_get_param_by_type(rain_sensor_device, ESP_RMAKER_PARAM_TEMPERATURE),
+            esp_rmaker_float(g_precipitation));
 }
 
-float app_get_current_temperature() // TODO=: Rename
+float app_get_current_precipitation()
 {
-    return g_temperature;
+    return g_precipitation;
 }
 
 esp_err_t app_sensor_init(void)
@@ -126,12 +126,12 @@ esp_err_t app_sensor_init(void)
 
     adc_cali_create_scheme_curve_fitting(&cali_config, &adc_cali_handle);
 
-    g_temperature = DEFAULT_TEMPERATURE;
+    g_precipitation = DEFAULT_PRECIPITATION;
     sensor_timer = xTimerCreate("app_sensor_update_tm", (REPORTING_PERIOD * 1000) / portTICK_PERIOD_MS,
                             pdTRUE, NULL, app_sensor_update);
     if (sensor_timer) {
         xTimerStart(sensor_timer, 0);
-        g_hue = (100 - g_temperature) * 2;
+        g_hue = (100 - g_precipitation) * 2;
         ws2812_led_set_hsv(g_hue, g_saturation, g_value);
         return ESP_OK;
     }
