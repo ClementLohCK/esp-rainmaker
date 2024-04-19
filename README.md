@@ -1,59 +1,39 @@
-# ESP RainMaker (Beta)
+# Building-Health Monitoring using Internet of Things (IoT)
 
-> Note: We have recently made some changes to the APIs. Please refer [this file](CHANGES.md) for details.
+## What this project is about
 
-## Introduction
+Currently, the maintenance of buildings is a manual process.
 
-ESP RainMaker is an end-to-end solution offered by Espressif to enable remote control and monitoring for ESP32-S2 and ESP32 based products without any configuration required in the Cloud. The primary components of this solution are:
+This project aims to develop a self-monitoring solution of the structural integrity of buildings, through the use of Internet of Things (IoT).
 
-- Claiming Service (to get the Cloud connectivity credentials)
-- RainMaker Agent (i.e. this repo, to develop the firmware)
-- RainMaker Cloud (backend, offering remote connectivity)
-- RainMaker Phone App/CLI (Client utilities for remote access)
+The entire project consists of 4 nodes connected on a common network. The sensors are -- (1) Buzzer w Flashing LED, (2) Tilt Sensor, (3) Rain Sensor, (4) Flex Sensor.
 
+This repository will cover (1) Buzzer w Flashing LED, (3) Rain Sensor, (4) Flex Sensor.
 
-The key features of ESP RainMaker are:
+It uses the ESP32-C6 board, which supports up to WiFi6 in 2.4GHsz band. For Serial Communications, I2C is used.
 
-1. Ability to define own devices and parameters, of any type, in the firmware.
-2. Zero configuration required on the Cloud.
-3. Phone apps that dynamically render the UI as per the device information.
+## Build, Flash firmware, and Visualize
 
-## Get ESP RainMaker
+1. Wire the components according to our report ./Report-Wireless_Health_Monitoring_of_Buildings.pdf
+2. The different pin numbers can be changed in app_priv.h for each of the respective sensors.
+3. Connect your device with a USB-Type C Cable. Choose the Right COM Port. Build the Project. Flash it unto your ESP Device.
+4. Once Flashed, Open Serial Monitor, and use the ESP Rainmaker App to scan the QR Code. This will perform provisioning of WiFi.
+5. Repeat for all of the nodes.
+6. Once Provisioned, you will see 3 devices on your ESP Rainmaker App, one for each sensor.
 
-Please clone this repository using the below command:
+## What to expect here?
 
-```
-git clone --recursive https://github.com/espressif/esp-rainmaker.git
-```
+- This project uses a buzzer and the inbuilt RGB LED as an alarm. Also uses a HW-028 rain sensor to detect amount of water, as well as flex sensor to detect amount of bending.
+- The sensor value is sent every REPORTING_PERIOD number of seconds. Settings can be changed in app_priv.h.
+- Each node will consistently send analog data of its sensor wirelessly, to be visualized in ESP Rainmaker App.
+- You can check the state of the alarm, precipitation percent and amount of bending in the ESP Rainmaker phone app.
 
-> Note the --recursive option. This is required to pull in the various dependencies into esp-rainmaker. In case you have already cloned the repository without this option, execute this to pull in the submodules: `git submodule update --init --recursive`
+## Hardware
 
-Please check the ESP RainMaker documentation [here](https://rainmaker.espressif.com/docs/get-started.html) to get started.
+This project is designed for (1) Buzzer with Flashing LED, (3) Rain Sensor, (4) Flex Sensor, to be indepedently housed with its portable power source, 9V Battery, Bulk Converter and a Junction Box Casing.
 
-Each example has its own README with additional information about using the example.
+These components can be changed to suit the design needs.
 
-## Supported ESP-IDF versions
+## Reset to Factory
 
-ESP RainMaker can work with ESP IDF 4.0 and above.
-
-## Phone Apps
-
-### Android
-
-- [Google PlayStore](https://play.google.com/store/apps/details?id=com.espressif.rainmaker)
-- [Direct APK](https://github.com/espressif/esp-rainmaker/wiki)
-- [Source Code](https://github.com/espressif/esp-rainmaker-android)
-
-### iOS
-- [Apple App Store](https://apps.apple.com/app/esp-rainmaker/id1497491540)
-- [Source Code](https://github.com/espressif/esp-rainmaker-ios)
-
-### API Documentation Build Status
-
-[![Documentation Status](https://readthedocs.com/projects/espressif-esp-rainmaker/badge/?version=latest)](https://docs.espressif.com/projects/esp-rainmaker/en/latest/)
-
-## Discussions
-
-[ESP32 Forum](https://www.esp32.com/viewforum.php?f=41)
-
-[![Gitter Chat](https://badges.gitter.im/esp-rainmaker/community.svg)](https://gitter.im/esp-rainmaker/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+Press and hold the BOOT button for more than 3 seconds to reset the board to factory defaults. You will have to provision the board again to use it.
