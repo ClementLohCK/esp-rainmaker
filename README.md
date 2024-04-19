@@ -6,6 +6,8 @@ Currently, the maintenance of buildings is a manual process.
 
 This project aims to develop a self-monitoring solution of the structural integrity of buildings, through the use of Internet of Things (IoT).
 
+This repo is forked from Espressif's main repo for esp-rainmaker. Files used for this project would be ./alarm, ./flex_sensor, and ./rain_sensor.
+
 The entire project consists of 4 nodes connected on a common network. The sensors are -- (1) Buzzer w Flashing LED, (2) Tilt Sensor, (3) Rain Sensor, (4) Flex Sensor.
 
 This repository will cover (1) Buzzer w Flashing LED, (3) Rain Sensor, (4) Flex Sensor.
